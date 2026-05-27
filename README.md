@@ -1,4 +1,4 @@
-# Adaptive Agentic Engineering Harness v5.1
+# Adaptive Agentic Engineering Harness v5.2.2
 
 A control plane for AI coding agents. It gives the agent clear rails — what to
 read, what to write, when to stop, when to ask a human — without dictating
@@ -82,9 +82,8 @@ cd your-project
 #    Skip on init: ./tools/harness init feature-development --skip-cursor
 
 # 4. Wire Claude Code (optional; skip if using Cursor or another agent)
-cp -r adapters/claude-code/.claude .
-cp adapters/claude-code/CLAUDE.md .
-chmod +x .claude/hooks/*.sh
+./tools/harness install claude
+# Windows PowerShell: .\tools\claude.ps1
 
 # 5. Verify
 ./tools/harness check

@@ -12,11 +12,17 @@ Customize the harness state and docs for this project without changing applicati
 ## Allowed Files
 
 - AGENTS.md
+- CLAUDE.md
+- README.md
+- CHANGELOG.md
+- .gitignore
 - .harness/**
+- .claude/**
 - docs/**
 - agents/**
 - pipelines/**
 - adapters/**
+- tools/**
 - tests/**
 
 ## Forbidden Files

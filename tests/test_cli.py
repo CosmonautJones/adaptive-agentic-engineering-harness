@@ -190,5 +190,67 @@ class TestHarnessStatus(unittest.TestCase):
         self.assertIn("missions", d)
 
 
+class TestWindowsGitBash(unittest.TestCase):
+    @unittest.skipUnless(sys.platform == "win32", "Windows only")
+    def test_find_git_bash_windows_prefers_git_over_wsl(self):
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location(
+            "install_claude_adapter",
+            ROOT / "tools" / "install-claude-adapter.py",
+        )
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        git_bash = mod.find_git_bash_windows()
+        self.assertIsNotNone(git_bash, "Git for Windows should be installed")
+        self.assertIn("git", str(git_bash).lower())
+        self.assertNotIn("system32", str(git_bash).lower())
+
+    @unittest.skipUnless(sys.platform == "win32", "Windows only")
+    def test_patch_claude_settings_wraps_sh_hooks(self):
+        import importlib.util
+        import json
+
+        spec = importlib.util.spec_from_file_location(
+            "install_claude_adapter",
+            ROOT / "tools" / "install-claude-adapter.py",
+        )
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        git_bash = mod.find_git_bash_windows()
+        self.assertIsNotNone(git_bash)
+
+        tmpdir = Path(tempfile.mkdtemp(prefix="harness-claude-settings-"))
+        try:
+            settings = tmpdir / "settings.json"
+            settings.write_text(
+                json.dumps(
+                    {
+                        "hooks": {
+                            "Stop": [
+                                {
+                                    "hooks": [
+                                        {
+                                            "type": "command",
+                                            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/stop-session-note-reminder.sh",
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            mod.patch_claude_settings_for_windows(settings, git_bash)
+            data = json.loads(settings.read_text(encoding="utf-8"))
+            cmd = data["hooks"]["Stop"][0]["hooks"][0]["command"]
+            self.assertIn("bash.exe", cmd.lower())
+            self.assertIn("stop-session-note-reminder.sh", cmd)
+        finally:
+            shutil.rmtree(tmpdir, ignore_errors=True)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

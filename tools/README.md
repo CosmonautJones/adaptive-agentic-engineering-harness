@@ -46,6 +46,21 @@ harness status              # human-readable, colorized
 harness status --json       # machine-readable for scripts
 ```
 
+### `harness install claude`
+
+Copy the Claude Code adapter (`.claude/` + `CLAUDE.md`) to the project root and make hooks executable. On Windows, uses Git Bash for `chmod`.
+
+```bash
+harness install claude
+```
+
+Windows shortcut:
+
+```powershell
+.\tools\claude.ps1          # install
+.\tools\claude.ps1 check    # harness check
+```
+
 ### `harness check`
 
 Verify the harness is installed and wired correctly. Four layers:

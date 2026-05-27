@@ -4,6 +4,34 @@ All notable changes to the Adaptive Agentic Engineering Harness. The canonical
 version timeline lives here. The older per-step changelogs (`CHANGELOG-v4-to-v5.md`
 in the v5 patch) are preserved alongside this file for historical reference.
 
+## [5.2.2] — 2026-05-26 — Claude Code one-command install
+
+Adds `harness install claude` and Windows helpers so the Claude Code adapter
+can be wired at the project root without manual `cp` / `chmod`.
+
+### What's new
+
+- **`harness install claude`** — copies `adapters/claude-code/` to `.claude/` + `CLAUDE.md`
+- **`tools/install-claude-adapter.py`** — cross-platform installer; on Windows wraps
+  hook commands with explicit Git Bash (WSL-safe) and runs `chmod +x`
+- **`tools/claude.ps1`** — PowerShell shortcut (`install` / `check`)
+- **Root `.claude/` + `CLAUDE.md`** — installed copy for this repo (dogfooding)
+- **Docs** — `docs/setup/claude-code.md` quick install + Git Bash explainer; README updated
+- **Tests** — Windows Git Bash detection and settings patch tests in `tests/test_cli.py`
+- **`.gitignore`** — exclude `__pycache__`, `*.egg-info`, `.env`
+
+### Install
+
+```bash
+./tools/harness install claude
+```
+
+Windows PowerShell:
+
+```powershell
+.\tools\claude.ps1
+```
+
 ## [5.2.1] — 2026-05-26 — SDK verification hardening
 
 Production hardening and operational verification runbook for Cursor SDK integration.

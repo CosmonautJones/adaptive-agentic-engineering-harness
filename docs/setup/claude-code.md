@@ -31,7 +31,23 @@ your-project/
 The `.harness/` directory and everything else stay where they are at the repo
 root — they're tool-neutral.
 
-## macOS / Linux
+## Quick install (all platforms)
+
+From the project root:
+
+```bash
+./tools/harness install claude
+```
+
+On Windows PowerShell:
+
+```powershell
+.\tools\claude.ps1
+```
+
+Then verify in Claude Code with `/hooks`.
+
+## macOS / Linux (manual)
 
 ```bash
 # From your project root, with the harness checked out at ./harness/
@@ -52,6 +68,20 @@ means hooks aren't wired correctly — re-run the steps above.
 ## Windows
 
 Claude Code's hooks are bash scripts. Windows users have two supported paths:
+
+### What is Git Bash?
+
+**Git Bash** is the terminal that ships with [Git for Windows](https://git-scm.com/download/win).
+It runs `bash` and Unix-style shell scripts (like the harness hooks) on Windows.
+You do **not** run the Claude Code desktop app *inside* Git Bash — Claude stays a
+normal GUI app. What matters is that **Claude Code can find `bash` on your PATH**
+when it runs hook scripts. The easiest fix on Windows:
+
+1. Install Git for Windows (if missing).
+2. Add `C:\Program Files\Git\bin` to your **user** PATH (Settings → Environment Variables).
+3. Restart Claude Code and open this project.
+
+Optional: open a Git Bash window to run `harness check` or the `claude` CLI — same PATH idea.
 
 ### Option A: Git Bash (recommended for most)
 

@@ -11,6 +11,7 @@ Usage:
                                           bugfix, refactor, release-readiness
                                    (installs Cursor hooks unless --skip-cursor)
   harness install cursor           Install Cursor adapter hooks + SDK pip packages
+  harness install claude           Install Claude Code adapter (.claude/ + CLAUDE.md)
   harness validate               Run validation commands from active mission, write report
   harness handoff [--mission ID] Generate a session note skeleton from current state
   harness dashboard [--open]     Render runs/dashboard/index.html from harness state files
@@ -65,6 +66,16 @@ def _run_cursor_adapter_install(root: Path, *, hooks_only: bool = True) -> int:
     if hooks_only:
         cmd.append("--hooks-only")
     result = subprocess.run(cmd, cwd=str(root))
+    return result.returncode
+
+
+def _run_claude_adapter_install(root: Path) -> int:
+    """Run tools/install-claude-adapter.py for the given harness root."""
+    script = root / "tools" / "install-claude-adapter.py"
+    if not script.is_file():
+        print(f"error: Claude adapter installer missing: {script}", file=sys.stderr)
+        return 2
+    result = subprocess.run([sys.executable, str(script), "--root", str(root)], cwd=str(root))
     return result.returncode
 
 
@@ -285,11 +296,9 @@ def cmd_check(args, root: Path) -> int:
                         if h.get("type") != "command":
                             continue
                         cmd = h.get("command", "")
-                        # expand ${CLAUDE_PROJECT_DIR}
-                        resolved = cmd.replace("${CLAUDE_PROJECT_DIR}", str(root))
-                        rp = Path(resolved)
+                        rp = resolve_claude_hook_script(cmd, root)
                         if not rp.exists():
-                            fail(f"hook script missing for {event}: {resolved}")
+                            fail(f"hook script missing for {event}: {rp}")
                             continue
                         if not os.access(rp, os.X_OK):
                             warn(f"hook script not executable: {rp.relative_to(root)} — run chmod +x")
@@ -782,6 +791,11 @@ def cmd_install_cursor(args, root: Path) -> int:
     return _run_cursor_adapter_install(root, hooks_only=False)
 
 
+def cmd_install_claude(args, root: Path) -> int:
+    """Install Claude Code adapter (.claude/ + CLAUDE.md)."""
+    return _run_claude_adapter_install(root)
+
+
 def cmd_validate(args, root: Path) -> int:
     """Run validation commands extracted from the active mission file."""
     project = load_yaml(root / ".harness/project-state.yml")
@@ -961,13 +975,56 @@ def run_cmd(args_list, cwd):
         return ""
 
 
+def find_git_bash_windows() -> Path | None:
+    """Return Git Bash on Windows; ignore WSL stub at System32."""
+    import shutil
+
+    program_files = os.environ.get("ProgramFiles", r"C:\Program Files")
+    program_files_x86 = os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")
+    candidates = [
+        Path(program_files) / "Git" / "bin" / "bash.exe",
+        Path(program_files_x86) / "Git" / "bin" / "bash.exe",
+    ]
+    which_bash = shutil.which("bash")
+    if which_bash:
+        p = Path(which_bash)
+        if p.exists() and "system32" not in str(p).lower() and "windowsapps" not in str(p).lower():
+            candidates.insert(0, p)
+
+    for path in candidates:
+        if path.is_file():
+            return path
+    return None
+
+
+def resolve_claude_hook_script(cmd: str, root: Path) -> Path:
+    """Return the hook .sh path from a Claude settings.json command."""
+    expanded = cmd.replace("${CLAUDE_PROJECT_DIR}", str(root))
+    quoted_scripts = re.findall(r'"([^"]+\.sh)"', expanded)
+    if quoted_scripts:
+        return Path(quoted_scripts[-1])
+    single_quoted = re.findall(r"'([^']+\.sh)'", expanded)
+    if single_quoted:
+        return Path(single_quoted[-1])
+    return Path(expanded)
+
+
+def hook_bash_command() -> list[str]:
+    """Return argv prefix for running harness hook scripts."""
+    if os.name == "nt":
+        git_bash = find_git_bash_windows()
+        if git_bash is not None:
+            return [str(git_bash)]
+    return ["bash"]
+
+
 def run_with_stdin(script_path: Path, stdin_text: str, root: Path, *, cursor: bool = False) -> str:
     env = os.environ.copy()
     env["CLAUDE_PROJECT_DIR"] = str(root)
     env["CURSOR_PROJECT_DIR"] = str(root)
     try:
         result = subprocess.run(
-            ["bash", str(script_path)],
+            hook_bash_command() + [str(script_path)],
             input=stdin_text,
             capture_output=True,
             text=True,
@@ -1753,6 +1810,7 @@ def main():
     p_install = sub.add_parser("install", help="Install harness adapters or extras")
     p_install_sub = p_install.add_subparsers(dest="install_target", required=True)
     p_install_sub.add_parser("cursor", help="Install Cursor hooks + SDK pip packages")
+    p_install_sub.add_parser("claude", help="Install Claude Code adapter (.claude/ + CLAUDE.md)")
 
     sub.add_parser("validate", help="Run validation commands from active mission, write report")
 
@@ -1794,6 +1852,8 @@ def main():
     if args.cmd == "install":
         if args.install_target == "cursor":
             return cmd_install_cursor(args, root)
+        if args.install_target == "claude":
+            return cmd_install_claude(args, root)
         print(f"error: unknown install target: {args.install_target}", file=sys.stderr)
         return 2
     return handlers[args.cmd](args, root)
