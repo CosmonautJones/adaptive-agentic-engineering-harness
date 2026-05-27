@@ -4,8 +4,8 @@
 #   .\tools\claude.ps1 check
 
 param(
-    [ValidateSet("install", "check")]
-    [string]$Action = "install"
+    [ValidateSet("install", "setup", "check")]
+    [string]$Action = "setup"
 )
 
 $ErrorActionPreference = "Stop"
@@ -18,6 +18,9 @@ if (-not $python) {
 }
 
 switch ($Action) {
+    "setup" {
+        & python "$Root\tools\harness" setup
+    }
     "install" {
         & python "$Root\tools\install-claude-adapter.py" --root $Root
     }

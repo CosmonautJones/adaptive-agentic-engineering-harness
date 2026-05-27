@@ -12,6 +12,7 @@ Usage:
                                    (installs Cursor hooks unless --skip-cursor)
   harness install cursor           Install Cursor adapter hooks + SDK pip packages
   harness install claude           Install Claude Code adapter (.claude/ + CLAUDE.md)
+  harness setup                    Wire core harness on this machine (Cursor + Claude hooks)
   harness validate               Run validation commands from active mission, write report
   harness handoff [--mission ID] Generate a session note skeleton from current state
   harness dashboard [--open]     Render runs/dashboard/index.html from harness state files
@@ -794,6 +795,72 @@ def cmd_install_cursor(args, root: Path) -> int:
 def cmd_install_claude(args, root: Path) -> int:
     """Install Claude Code adapter (.claude/ + CLAUDE.md)."""
     return _run_claude_adapter_install(root)
+
+
+def _ensure_pyyaml() -> bool:
+    """Install PyYAML if missing. Returns True when import works."""
+    try:
+        import yaml  # noqa: F401
+        return True
+    except ImportError:
+        pass
+    print(colorize("Installing PyYAML (required for harness CLI)...", "cyan"))
+    result = subprocess.run(
+        [sys.executable, "-m", "pip", "install", "pyyaml"],
+        capture_output=False,
+    )
+    if result.returncode != 0:
+        print("error: could not install pyyaml", file=sys.stderr)
+        return False
+    try:
+        import yaml  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
+def cmd_setup(args, root: Path) -> int:
+    """Wire harness core on this machine: Cursor hooks + Claude adapter + check."""
+    print(colorize(f"{emoji_or_ascii('⚙', '[setup]')} Harness workstation setup (core only)", "bold"))
+    print("  Skips SDK, MCP, and orchestrator packages unless you install those separately.")
+    print()
+
+    if not _ensure_pyyaml():
+        return 2
+
+    exit_code = 0
+    if not getattr(args, "skip_cursor", False):
+        print(colorize("-> Cursor adapter (hooks only)", "cyan"))
+        code = _run_cursor_adapter_install(root, hooks_only=True)
+        if code != 0:
+            print(colorize(f"  warning: Cursor install exited {code}", "yellow"), file=sys.stderr)
+            exit_code = code
+
+    if not getattr(args, "skip_claude", False):
+        print(colorize("-> Claude Code adapter", "cyan"))
+        code = _run_claude_adapter_install(root)
+        if code != 0:
+            exit_code = code
+
+    print()
+    print(colorize("-> Verify install", "cyan"))
+    check_args = argparse.Namespace(strict=False, json=False, cwd=None)
+    check_code = cmd_check(check_args, root)
+    if check_code != 0 and exit_code == 0:
+        exit_code = check_code
+
+    print()
+    print(colorize("Next steps", "bold"))
+    print("  1. Restart Cursor and/or Claude Code; open this folder as the project root.")
+    print("  2. Claude: run /hooks  |  Cursor: trust workspace if prompted.")
+    print("  3. python tools/harness status")
+    print()
+    print("  Agent bootstrap: paste the block in prompts/setup-workstation.md")
+    print("  Human guide:     docs/setup/quick-start.md")
+    print()
+    print(colorize("Out of scope for setup:", "dim"))
+    print("  sdk/python orchestrator, MCP, pip install -e sdk/...  see docs/setup/cursor-sdk.md")
+    return exit_code
 
 
 def cmd_validate(args, root: Path) -> int:
@@ -1812,6 +1879,21 @@ def main():
     p_install_sub.add_parser("cursor", help="Install Cursor hooks + SDK pip packages")
     p_install_sub.add_parser("claude", help="Install Claude Code adapter (.claude/ + CLAUDE.md)")
 
+    p_setup = sub.add_parser(
+        "setup",
+        help="Wire core harness on this machine (Cursor hooks + Claude adapter + check)",
+    )
+    p_setup.add_argument(
+        "--skip-cursor",
+        action="store_true",
+        help="Do not install Cursor adapter hooks",
+    )
+    p_setup.add_argument(
+        "--skip-claude",
+        action="store_true",
+        help="Do not install Claude Code adapter",
+    )
+
     sub.add_parser("validate", help="Run validation commands from active mission, write report")
 
     p_handoff = sub.add_parser("handoff", help="Generate a session note skeleton")
@@ -1845,6 +1927,7 @@ def main():
         "check": cmd_check,
         "next": cmd_next,
         "init": cmd_init,
+        "setup": cmd_setup,
         "validate": cmd_validate,
         "handoff": cmd_handoff,
         "dashboard": cmd_dashboard,

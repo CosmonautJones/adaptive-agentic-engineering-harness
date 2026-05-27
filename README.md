@@ -1,4 +1,4 @@
-# Adaptive Agentic Engineering Harness v5.2.2
+# Adaptive Agentic Engineering Harness v5.2.3
 
 A control plane for AI coding agents. It gives the agent clear rails — what to
 read, what to write, when to stop, when to ask a human — without dictating
@@ -69,32 +69,39 @@ escalation rules) and `harness-retrospective` for periodic self-improvement.
 
 ## Getting started
 
-```bash
-# 1. Drop the harness into your project
-cp -r adaptive-agentic-engineering-harness-v5.1/. your-project/
+### Simplest: tell your agent
 
-# 2. Initialize for your mode
-cd your-project
-./tools/harness init feature-development   # or idea-to-mvp, bugfix, etc.
+Clone this repo, open it in Cursor or Claude Code, and paste:
 
-# 3. Cursor hooks (installed automatically when you run harness init above)
-#    Full SDK (hooks + pip): ./tools/harness install cursor
-#    Skip on init: ./tools/harness init feature-development --skip-cursor
-
-# 4. Wire Claude Code (optional; skip if using Cursor or another agent)
-./tools/harness install claude
-# Windows PowerShell: .\tools\claude.ps1
-
-# 5. Verify
-./tools/harness check
+```text
+Set up the Adaptive Agentic Engineering Harness on this machine — core control plane only, not the experimental SDK/MCP stack. Follow prompts/setup-workstation.md exactly, run the commands yourself, and give me a short pass/fail report.
 ```
 
-See `docs/setup/claude-code.md` for the full guide, including Windows /
-PowerShell notes and the jq dependency.
+### Or one command
+
+```bash
+git clone https://github.com/tjones-gss/adaptive-agentic-engineering-harness.git
+cd adaptive-agentic-engineering-harness
+python tools/harness setup
+```
+
+Windows: `.\tools\claude.ps1` (defaults to `setup`). See `docs/setup/quick-start.md`.
+
+### Using the harness on another project
+
+```bash
+cp -r adaptive-agentic-engineering-harness/. your-project/
+cd your-project
+python tools/harness setup
+python tools/harness init feature-development   # pick your mode
+```
+
+SDK / MCP / `run-loop` are optional — see `docs/setup/cursor-sdk.md`, not required for missions and hooks.
 
 ## CLI quick reference
 
 ```bash
+./tools/harness setup               # wire this machine (Cursor + Claude hooks)
 ./tools/harness status              # what mode, what phase, what mission
 ./tools/harness check               # validate the install
 ./tools/harness check --strict      # warnings become failures

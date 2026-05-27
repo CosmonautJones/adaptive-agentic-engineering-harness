@@ -22,6 +22,7 @@ Customize the harness state and docs for this project without changing applicati
 - agents/**
 - pipelines/**
 - adapters/**
+- prompts/**
 - tools/**
 - tests/**
 

@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"C:\\Program Files\\Git\\bin\\bash.exe\" \"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-start-load-state.sh\"",
+            "command": "\"C:\\\\Program Files\\\\Git\\\\bin\\\\bash.exe\" \"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-start-load-state.sh\"",
             "args": [],
             "timeout": 10
           }
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"C:\\Program Files\\Git\\bin\\bash.exe\" \"${CLAUDE_PROJECT_DIR}/.claude/hooks/block-danger.sh\"",
+            "command": "\"C:\\\\Program Files\\\\Git\\\\bin\\\\bash.exe\" \"${CLAUDE_PROJECT_DIR}/.claude/hooks/block-danger.sh\"",
             "args": []
           }
         ]
@@ -29,7 +29,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"C:\\Program Files\\Git\\bin\\bash.exe\" \"${CLAUDE_PROJECT_DIR}/.claude/hooks/require-mission.sh\"",
+            "command": "\"C:\\\\Program Files\\\\Git\\\\bin\\\\bash.exe\" \"${CLAUDE_PROJECT_DIR}/.claude/hooks/require-mission.sh\"",
             "args": []
           }
         ]
@@ -40,7 +40,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"C:\\Program Files\\Git\\bin\\bash.exe\" \"${CLAUDE_PROJECT_DIR}/.claude/hooks/stop-session-note-reminder.sh\"",
+            "command": "\"C:\\\\Program Files\\\\Git\\\\bin\\\\bash.exe\" \"${CLAUDE_PROJECT_DIR}/.claude/hooks/stop-session-note-reminder.sh\"",
             "args": []
           }
         ]

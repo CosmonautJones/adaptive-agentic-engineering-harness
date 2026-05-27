@@ -46,6 +46,18 @@ harness status              # human-readable, colorized
 harness status --json       # machine-readable for scripts
 ```
 
+### `harness setup`
+
+Wire **core harness** on this machine: PyYAML if needed, Cursor hooks (no SDK), Claude adapter, then `harness check`.
+
+```bash
+harness setup
+harness setup --skip-claude    # Cursor only
+harness setup --skip-cursor    # Claude only
+```
+
+Agent-oriented guide: `prompts/setup-workstation.md` · Human guide: `docs/setup/quick-start.md`
+
 ### `harness install claude`
 
 Copy the Claude Code adapter (`.claude/` + `CLAUDE.md`) to the project root and make hooks executable. On Windows, uses Git Bash for `chmod`.

@@ -4,6 +4,19 @@ All notable changes to the Adaptive Agentic Engineering Harness. The canonical
 version timeline lives here. The older per-step changelogs (`CHANGELOG-v4-to-v5.md`
 in the v5 patch) are preserved alongside this file for historical reference.
 
+## [5.2.3] — 2026-05-27 — Workstation setup (agent-driven)
+
+One-command and one-prompt setup for harness **core** only (no SDK/MCP).
+
+### What's new
+
+- **`harness setup`** — Cursor hooks (hooks-only) + Claude adapter + `harness check`
+- **`prompts/setup-workstation.md`** — paste-to-agent bootstrap checklist
+- **`docs/setup/quick-start.md`** — human quick start
+- **`workstation-setup`** skill (Claude) — triggers on "set up the harness"
+- **`tools/claude.ps1`** — defaults to `setup`
+- README getting started leads with agent prompt + `harness setup`
+
 ## [5.2.2] — 2026-05-26 — Claude Code one-command install
 
 Adds `harness install claude` and Windows helpers so the Claude Code adapter
