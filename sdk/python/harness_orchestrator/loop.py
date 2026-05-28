@@ -7,7 +7,7 @@ from harness_core.gates import GateContext, evaluate_gates
 from harness_core.pipelines import load_pipeline, pipeline_phases
 from harness_core.yaml_utils import get, load_yaml
 
-from harness_orchestrator.cursor_driver import DriverConfig, config_from_env, create_agent, send_and_wait
+from harness_orchestrator.cursor_driver import DriverConfig, config_from_env, create_agent, run_prompt, send_and_wait
 from harness_orchestrator.roles import build_phase_prompt
 from harness_orchestrator.state import (
     harness_cli,
@@ -80,8 +80,6 @@ def run_next_mission_loop(root: Path, config: DriverConfig) -> int:
                 mission=mission_id,
             )
         elif agent_name in ORCHESTRATOR_AGENTS and agent_name != "implementer":
-            from harness_orchestrator.cursor_driver import run_prompt
-
             cfg = config_from_env(
                 cwd=str(root),
                 runtime=config.runtime,
@@ -91,8 +89,6 @@ def run_next_mission_loop(root: Path, config: DriverConfig) -> int:
             result = run_prompt(cfg, prompt)
             update_sdk_state(root, run_id=result.run_id, runtime=config.runtime)
         else:
-            from harness_orchestrator.cursor_driver import run_prompt
-
             result = run_prompt(
                 config_from_env(cwd=str(root), runtime=config.runtime, dry_run=config.dry_run, api_key=config.api_key),
                 prompt,
