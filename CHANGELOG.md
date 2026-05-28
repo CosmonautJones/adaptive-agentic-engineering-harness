@@ -4,6 +4,32 @@ All notable changes to the Adaptive Agentic Engineering Harness. The canonical
 version timeline lives here. The older per-step changelogs (`CHANGELOG-v4-to-v5.md`
 in the v5 patch) are preserved alongside this file for historical reference.
 
+## [5.3.0] — 2026-05-28 — `mvp-sketch` mode restored + `harness setup` PyYAML bootstrap fix
+
+Reinstates the prototype/spike lane that was present in v5.2.0 and dropped during the
+v5.2.x reorg, and fixes the unreachable PyYAML auto-install path in `harness setup`.
+
+### What's new
+
+- **`mvp-sketch` pipeline** — timeboxed pre-MVP lane: sketch-intake → scope-slice →
+  prototype-plan → prototype-build → sketch-validation → sketch-review → disposition.
+  Disposition required: `disposable` (throwaway) or `promotable` (handoff to
+  `idea-to-mvp`, not eligible to ship directly).
+- **`prompts/bootstrap-mvp-sketch.md`** — orchestrator bootstrap prompt for the lane.
+- **`docs/sketches/`** — README plus three templates: `sketch-brief`,
+  `prototype-scope`, `prototype-plan`. Sketch artifacts live in
+  `docs/sketches/<slug>/`.
+- **`harness init mvp-sketch`** — CLI registers the new mode (first stage:
+  `sketch-intake`).
+
+### Fixed
+
+- **`harness setup` now actually installs PyYAML on a fresh machine.** The
+  top-level `import yaml` guard previously called `sys.exit(2)` before
+  `cmd_setup` could run, so the documented bootstrap was unreachable. The guard
+  now attempts `pip install pyyaml` first when the subcommand is `setup`. The
+  now-dead `_ensure_pyyaml` helper inside `cmd_setup` is removed.
+
 ## [5.2.3] — 2026-05-27 — Workstation setup (agent-driven)
 
 One-command and one-prompt setup for harness **core** only (no SDK/MCP).

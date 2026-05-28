@@ -1,4 +1,4 @@
-# Adaptive Agentic Engineering Harness v5.2.3
+# Adaptive Agentic Engineering Harness v5.3.0
 
 A control plane for AI coding agents. It gives the agent clear rails — what to
 read, what to write, when to stop, when to ask a human — without dictating
