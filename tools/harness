@@ -7,8 +7,8 @@ Usage:
   harness check                  Verify harness is installed and wired correctly
   harness next                   Run mission-selection algorithm, suggest next action (no edits)
   harness init <mode>            Bootstrap project-state.yml + pipeline-state.yml for a mode
-                                   modes: idea-to-mvp, existing-repo-retrofit, feature-development,
-                                          bugfix, refactor, release-readiness
+                                   modes: idea-to-mvp, mvp-sketch, existing-repo-retrofit,
+                                          feature-development, bugfix, refactor, release-readiness
                                    (installs Cursor hooks unless --skip-cursor)
   harness install cursor           Install Cursor adapter hooks + SDK pip packages
   harness install claude           Install Claude Code adapter (.claude/ + CLAUDE.md)
@@ -41,8 +41,17 @@ if str(_REPO_ROOT) not in sys.path:
 try:
     import yaml
 except ImportError:
-    print("error: PyYAML is required. install with: pip install pyyaml", file=sys.stderr)
-    sys.exit(2)
+    # `harness setup` bootstraps a fresh machine, so it must be able to install
+    # PyYAML itself. The import runs before any command code, so the install has
+    # to happen here — otherwise setup would exit before it could ever fix this.
+    if "setup" in sys.argv:
+        print("Installing PyYAML (required for harness CLI)...", file=sys.stderr)
+        subprocess.run([sys.executable, "-m", "pip", "install", "pyyaml"])
+    try:
+        import yaml
+    except ImportError:
+        print("error: PyYAML is required. install with: pip install pyyaml", file=sys.stderr)
+        sys.exit(2)
 
 def load_yaml(path: Path) -> dict:
     if not path.exists():
@@ -703,7 +712,7 @@ def cmd_next(args, root: Path) -> int:
 
 def cmd_init(args, root: Path) -> int:
     """Bootstrap project-state.yml and pipeline-state.yml for a mode."""
-    valid_modes = {"idea-to-mvp", "existing-repo-retrofit", "feature-development",
+    valid_modes = {"idea-to-mvp", "mvp-sketch", "existing-repo-retrofit", "feature-development",
                    "bugfix", "refactor", "release-readiness"}
     if args.mode not in valid_modes:
         print(f"error: mode must be one of: {', '.join(sorted(valid_modes))}", file=sys.stderr)
@@ -729,6 +738,7 @@ def cmd_init(args, root: Path) -> int:
     # Decide stage based on mode
     stage_map = {
         "idea-to-mvp": "intake",
+        "mvp-sketch": "sketch-intake",
         "existing-repo-retrofit": "repo-discovery",
         "feature-development": "classify-feature",
         "bugfix": "reproduce",
@@ -797,36 +807,11 @@ def cmd_install_claude(args, root: Path) -> int:
     return _run_claude_adapter_install(root)
 
 
-def _ensure_pyyaml() -> bool:
-    """Install PyYAML if missing. Returns True when import works."""
-    try:
-        import yaml  # noqa: F401
-        return True
-    except ImportError:
-        pass
-    print(colorize("Installing PyYAML (required for harness CLI)...", "cyan"))
-    result = subprocess.run(
-        [sys.executable, "-m", "pip", "install", "pyyaml"],
-        capture_output=False,
-    )
-    if result.returncode != 0:
-        print("error: could not install pyyaml", file=sys.stderr)
-        return False
-    try:
-        import yaml  # noqa: F401
-        return True
-    except ImportError:
-        return False
-
-
 def cmd_setup(args, root: Path) -> int:
     """Wire harness core on this machine: Cursor hooks + Claude adapter + check."""
     print(colorize(f"{emoji_or_ascii('⚙', '[setup]')} Harness workstation setup (core only)", "bold"))
     print("  Skips SDK, MCP, and orchestrator packages unless you install those separately.")
     print()
-
-    if not _ensure_pyyaml():
-        return 2
 
     exit_code = 0
     if not getattr(args, "skip_cursor", False):
@@ -1865,7 +1850,7 @@ def main():
     p_next.add_argument("--json", action="store_true", help="Machine-readable JSON output")
 
     p_init = sub.add_parser("init", help="Bootstrap project-state for a mode")
-    p_init.add_argument("mode", help="One of: idea-to-mvp, existing-repo-retrofit, "
+    p_init.add_argument("mode", help="One of: idea-to-mvp, mvp-sketch, existing-repo-retrofit, "
                                      "feature-development, bugfix, refactor, release-readiness")
     p_init.add_argument("--dry-run", action="store_true", help="Show what would change, do not write")
     p_init.add_argument(
