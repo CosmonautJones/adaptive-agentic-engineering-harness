@@ -80,7 +80,7 @@ Set up the Adaptive Agentic Engineering Harness on this machine — core control
 ### Or one command
 
 ```bash
-git clone https://github.com/tjones-gss/adaptive-agentic-engineering-harness.git
+git clone https://github.com/CosmonautJones/adaptive-agentic-engineering-harness.git
 cd adaptive-agentic-engineering-harness
 python tools/harness setup
 ```
